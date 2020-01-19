@@ -51,9 +51,9 @@ deploy 存放二进制文件、脚本。
     windows 服务管理程序。打包后，该程序会被重命名为： `${project.service.name}.exe`（必须与最终的 windows 服务名称一致）。
 服务安装成功后，可通过该程序启动、停止服务；调整服务的一些配置，例如：启动参数、jvm配置等
 + prunsrv.exe：    
-    windows 服务程序
+    windows 服务程序。打包后，该程序会被重命名为： `${project.service.name}-service.exe`。
 + amd64/prunsrv.exe：    
-    `amd64` 处理器架构的 `prunsrv.exe`。
+    `amd64` 处理器架构的 `prunsrv.exe`。打包后，该程序会被重命名为： `${project.service.name}-service_x64.exe`。
 
 ### assembly.xml 
 `assembly.xml` 是 `maven-assembly-plugin` 的描述文件，用于配置打包规则。
