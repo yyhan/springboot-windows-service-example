@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.yugong</groupId>
+    <artifactId>springboot-windows-service-example</artifactId>
+    <version>1.0.0.0</version>
+
+    <packaging>jar</packaging>
+    <name>springboot windows 服务示例</name>
+    <description>springboot 项目打包成 windows 服务示例</description>
+
+    <properties>
+        <!-- 指定编译器版本 -->
+        <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
+        <!-- 指定 java 源码版本，即 javac 的 -source 参数 -->
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <!-- 指定生成字节码的版本，即 javac 的 -target 参数 -->
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <!-- java 版本 -->
+        <java.version>1.8</java.version>
+        <!-- 文件编码 -->
+        <file.encoding>utf-8</file.encoding>
+        <!-- 指定源代码的编码 -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- 该模块禁止 install 到本地 maven 仓库 -->
+        <maven.install.skip>true</maven.install.skip>
+        <!-- 该模块禁止部署到远程 maven 仓库 -->
+        <maven.deploy.skip>true</maven.deploy.skip>
+
+        <log4j.version>2.13.0</log4j.version>
+        <spring-boot.version>2.1.7.RELEASE</spring-boot.version>
+
+        <!-- windows 服务名称 -->
+        <project.service.name>${project.artifactId}</project.service.name>
+        <!-- windows 服务显示名称 -->
+        <project.service.displayName>${project.name}</project.service.displayName>
+        <!-- windows 服务描述 -->
+        <project.service.description>${project.description}</project.service.description>
+        <!-- 打包为 windows 服务时，使用的入口类 -->
+        <project.service.mainClass>org.yugong.daemon.MainApp</project.service.mainClass>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+
+        <!-- log4j2 api -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <!-- log4j2 core -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <!-- web 环境支持 -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-web</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <!-- slf4j 支持 -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <!-- java.util.logging 支持 -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-jul</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <!-- commons-logging 支持 -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-jcl</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <!-- log4j 1.2x 版本 支持 -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-1.2-api</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.25</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <!-- 排除默认的 log 组件 -->
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- 使用 log4j2 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-log4j2</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>jul-to-slf4j</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <!-- 默认打成普通 springboot jar 包 -->
+            <id>springboot</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources</directory>
+                        <excludes>
+                            <!-- 排除 res_windows_service 目录下的资源文件 -->
+                            <exclude>res_windows_service/</exclude>
+                        </excludes>
+                    </resource>
+                </resources>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <version>${spring-boot.version}</version>
+                        <configuration>
+                            <fork>true</fork>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <!-- 生成可执行 jar 包 -->
+                                    <goal>repackage</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <!-- 打包为 windows 服务 -->
+            <id>windows-service</id>
+            <build>
+                <!-- 最终 jar 包 和 zip 包名称 -->
+                <finalName>springboot</finalName>
+                <resources>
+                    <resource>
+                        <directory>src/main/resources</directory>
+                        <excludes>
+                            <!-- 排除 res_windows_service 目录下的资源文件 -->
+                            <exclude>res_windows_service/</exclude>
+                        </excludes>
+                    </resource>
+                    <resource>
+                        <!-- 打包 windows 服务时，从 res_windows_service 目录下拷贝资源文件 -->
+                        <directory>src/main/resources/res_windows_service</directory>
+                    </resource>
+                </resources>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <version>3.2.0</version>
+                        <executions>
+                            <execution>
+                                <id>build-bin</id>
+                                <!-- 绑定到package生命周期阶段 -->
+                                <phase>package</phase>
+                                <goals>
+                                    <!-- 只运行一次 -->
+                                    <goal>single</goal>
+                                </goals>
+                                <configuration>
+                                    <!-- 打包后的文件名包含 assembly id -->
+                                    <appendAssemblyId>true</appendAssemblyId>
+                                    <descriptors>
+                                        <!--描述文件路径 ，默认跟当前pom.xml同一级目录下 -->
+                                        <descriptor>assembly.xml</descriptor>
+                                    </descriptors>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <version>3.0.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.7.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>3.0.1</version>
+                    <configuration>
+                        <!-- 配置文件覆盖 -->
+                        <overwrite>true</overwrite>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.0.2</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-war-plugin</artifactId>
+                    <version>3.1.0</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>
