@@ -31,7 +31,7 @@
         <!-- 该模块禁止部署到远程 maven 仓库 -->
         <maven.deploy.skip>true</maven.deploy.skip>
 
-        <log4j.version>2.13.0</log4j.version>
+        <log4j.version>2.16.0</log4j.version>
         <spring-boot.version>2.1.7.RELEASE</spring-boot.version>
 
         <!-- windows 服务名称 -->
